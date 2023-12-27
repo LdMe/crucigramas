@@ -29,7 +29,7 @@ services:
 
 networks:
   crucigramas-network:
-    driver: internal
+    name: crucigramas-network
   nginx-proxy:
     external:
       name: nginx-proxy
