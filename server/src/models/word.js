@@ -7,11 +7,12 @@ const wordSchema = new Schema({
         required: true,
         unique: true
     },
-    definitions: [{
-        type: String,
-        required: true
-    }],
-    synonyms: [String]
+    definitions: [String],
+    synonyms: [String],
+    ranking: {
+        type: Number,
+        default: 0
+    }
 });
 
 const Word = mongoose.model('Word', wordSchema);

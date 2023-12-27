@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import clg from "crossword-layout-generator"
-import { getWordInfo, addWord, getWords, getRandomWords,getRandomWordFromWords,removeWordInWordsAndSave } from './controllers/wordController.js';
+import { getWordInfo, addWord, getWords, getRandomWords,getRandomWordFromWords,convertTxtToJson } from './controllers/wordController.js';
 import { getClues } from './controllers/chatGPTController.js';
 
 const app = express();
 app.use(cors());
+/* 
+convertTxtToJson(); */
 app.get('/api/words', async (req, res) => {
     const filter = req.query.filter;
     try {
@@ -17,7 +19,7 @@ app.get('/api/words', async (req, res) => {
         res.json(words);
     }
     catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).json({ message: "Something went wrong" });
     }
 });
@@ -44,9 +46,9 @@ app.get('/api/words/:word', async (req, res) => {
 });
 
 app.get('/api/crossword', async (req, res) => {
+    getRandomWordFromWords();
     const count = req.query.count || 20;
     const words = await getRandomWords(parseInt(count));
-    console.log("words",words)
     const normalizedWords = words.map((word)=>{
         // remove accents and special characters
         const normalizedWord = word.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "");

@@ -7,7 +7,7 @@ import path from "path";
 
 const __dirname = path.resolve();
 console.log("dirname",__dirname);
-const getWordInfo = async (word) => {
+const getWordInfo = async (word,ranking=0) => {
     try {
         const dbWord = await Word.findOne({ word });
         if (dbWord) {
@@ -48,7 +48,7 @@ const getWordInfo = async (word) => {
             console.log(error);
 
         }
-        await addWord({ word, definitions, synonyms });
+        await addWord({ word, definitions, synonyms, ranking });
         return { word, definitions, synonyms };
 
     }
@@ -57,7 +57,6 @@ const getWordInfo = async (word) => {
         return { word, definitions: ['No se encontró la palabra'], synonyms: [] };
     }
 }
-
 const getWords = async () => {
     try {
         const words = await Word.find();
@@ -126,10 +125,14 @@ const getRandomWordFromWords = async() => {
     }
     const randomIndex = Math.floor(Math.random() * words.length);
     const randomWord = words[randomIndex];
+    // remove trailing spaces
+
+    randomWord.word = randomWord.word.trim();
+    randomWord.ranking = parseInt(randomWord.ranking);
     console.log("random word",randomWord);
     try{
-        const wordInfo = await getWordInfo(randomWord);
-        removeWordInWordsAndSave(randomWord);
+        const wordInfo = await getWordInfo(randomWord.word,randomWord.ranking);
+        removeWordInWordsAndSave(randomWord.word);
         return(wordInfo);
     }
     catch(error){
@@ -138,11 +141,28 @@ const getRandomWordFromWords = async() => {
     }
 }
 const removeWordInWordsAndSave = (word) => {
-    const index = words.indexOf(word);
+    const index = words.findIndex((wordObj)=>wordObj.word===word);
     words.splice(index, 1);
     fs.writeFileSync(path.join(__dirname, "./assets/words.json"), JSON.stringify(words));
 }
-
+/**
+ * Convert words.txt to words.json
+  each row has numeric ranking, a word, absolute frequency, and relative frequency, separated by tabs
+  we want to return the word and the ranking
+ */
+const convertTxtToJson = () => {
+    const wordsTxt = fs.readFileSync(path.join(__dirname, "./assets/words.txt"), "utf8");
+    const wordsArray = wordsTxt.split("\n");
+    const wordsJson = [];
+    for (let i = 1; i < wordsArray.length; i++) {
+        const word = {
+            ranking: wordsArray[i].split("\t")[0],
+            word: wordsArray[i].split("\t")[1]
+        }
+        wordsJson.push(word);
+    }
+    fs.writeFileSync(path.join(__dirname, "./assets/words.json"), JSON.stringify(wordsJson));
+}
 export {
     addWord,
     getWordInfo,
@@ -151,6 +171,7 @@ export {
     getWords,
     getRandomWords,
     getRandomWordFromWords,
-    removeWordInWordsAndSave
+    removeWordInWordsAndSave,
+    convertTxtToJson
 
 }
