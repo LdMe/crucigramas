@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState,useRef } from 'react'
 import './App.css'
-import clg from "crossword-layout-generator"
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 function App() {
@@ -10,15 +7,20 @@ function App() {
   const [layout, setLayout] = useState(null);
   const [selectedWord, setSelectedWord] = useState(null);
   const [selectedCoordinates, setSelectedCoordinates] = useState(null);
+  const tableRef = useRef(null);
+  const cellRef = useRef(null);
   useEffect(() => {
     getCrossword()
   }
-    , [])
+    , []);
+  useEffect(() => {
+    centerSelectedLetter();
+  }, [selectedCoordinates])
 
   const getCrossword = async () => {
     try {
       const count = 20;
-      const res = await fetch(`http://192.168.43.250:3007/api/crossword?count=${count}`)
+      const res = await fetch(`http://192.168.1.130:3007/api/crossword?count=${count}`)
       const data = await res.json()
       /* data.result = data.result.map((word) => {
         // replace all accents
@@ -54,7 +56,7 @@ function App() {
     return results;
   }
   const getSelectedLetterClass = (x, y) => {
-    
+
 
     const words = letterBelongsToWords(x, y);
     if (!words) return "";
@@ -79,48 +81,21 @@ function App() {
         setSelectedCoordinates({ x, y });
         return;
       }
-      setSelectedWord(null);
-      setSelectedCoordinates(null);
+      console.log("segundo")
+      setSelectedWord(words[0]);
+      setSelectedCoordinates({ x, y });
       return;
     }
     else {
 
       const word = words.some((word) => word.word === selectedWord?.word) ? selectedWord : words[0];
       setSelectedWord(word);
-      console.log(word)
+      
       setSelectedCoordinates({ x, y });
     }
 
   }
-  const getResultsByOrientation = (orientation) => {
-    if (!layout || !layout.result) return [];
-    const results = layout.result.filter((result) => {
-      return result.orientation === orientation;
-    });
-    const sortedResults = results.sort((a, b) => {
-      if (orientation === "across") {
-        if (a.starty === b.starty) {
-          return a.startx - b.startx;
-        }
-        return a.starty - b.starty;
-      }
-      if (a.startx === b.startx) {
-        return a.starty - b.starty;
-      }
-      return a.startx - b.startx;
-    });
-    const sortedWords = sortedResults.map((result) => {
-      return {
-        answer: result.word,
-        clue: result.definitions[1],
-        synonims: result.synonims,
-        startx: result.startx,
-        starty: result.starty,
-        orientation: result.orientation,
-      }
-    });
-    return sortedWords;
-  }
+  
 
   const checkWordIsCorrect = (word) => {
     if (!layout) return false;
@@ -144,9 +119,23 @@ function App() {
     if (!arrows.includes(key)) return;
     const orientationCondition = key === "ArrowUp" || key === "ArrowDown" ? "down" : "across";
   }
+  /**
+   * 
+   * function to center the selected letter in the table
+   */
+  const centerSelectedLetter = () => {
+    if(!cellRef.current) return;
+    const offsetX = cellRef.current.offsetLeft - tableRef.current.parentElement.clientWidth / 2 + cellRef.current.clientWidth / 2;
+    const offsetY = cellRef.current.offsetTop - tableRef.current.parentElement.clientHeight / 2 + cellRef.current.clientHeight / 2;
+    tableRef.current.parentElement.scrollLeft = offsetX;
+    tableRef.current.parentElement.scrollTop = offsetY
+
+
+
+    
+  }
   const handleKeyboard = (e) => {
     if (!selectedWord) return;
-    console.log("key", e)
     if (!e.key) {
       if (e === "{bksp}") {
         e = "Backspace"
@@ -161,7 +150,6 @@ function App() {
       }
       else {
         const words = letterBelongsToWords(selectedCoordinates.x, selectedCoordinates.y);
-        console.log(words)
         if (words.length > 1 && selectedWord?.word === words[0].word) {
           setSelectedWord(words[1]);
           if (selectedCoordinates.y === words[1].starty) return;
@@ -248,7 +236,6 @@ function App() {
       }
     }
     else {
-      console.log(e.key)
       //if not a letter, do nothing
       if (e.key.length > 1) return;
       const words = letterBelongsToWords(selectedCoordinates.x, selectedCoordinates.y);
@@ -259,7 +246,6 @@ function App() {
 
         if (checkWordIsCorrect(selectedWord)) {
           alert("correct")
-          console.log("new layout", newLayout)
           // add "correct:true" to the word in the layout
           newLayout.result = newLayout.result.map((word) => {
             if (word.word === selectedWord.word) {
@@ -288,27 +274,62 @@ function App() {
     <>
 
       <div className="board" onKeyDown={handleKeyboard} tabIndex={0}>
-        <table>
+        <table ref={tableRef}>
           <thead>
             <tr>
-              <th>#</th>
+              <td className="blank"></td>
+              <td className="blank"></td>
               {colNumbers.map((col) => {
-                return <th key={col}>{col}</th>
+                return <td
+                  className={"blank " + (selectedCoordinates?.x === col ? "selected-letter" : "")}
+                  key={col}>
+                  {col}
+                </td>
+              })}
+              <td className="blank"></td>
+              
+            </tr>
+            <tr>
+            {colNumbers.map((col) => {
+                return <td
+                  className="blank"
+                  key={col}>
+                  &nbsp;
+                </td>
               })}
             </tr>
           </thead>
           <tbody>
             {layout?.table.map((row, indexY) => {
-              return <tr key={indexY}><td>{indexY + 1}</td>{row.map((cell, indexX) => {
-                return <td
-                  key={indexX}
-                  className={(cell.correct === "-" ? "blank " : "") + (getSelectedLetterClass(indexX + 1, indexY + 1))}
-                  onClick={() => selectWord(indexX + 1, indexY + 1)}
+              return <tr key={indexY}>
+                <td
+                  className={"blank " + (selectedCoordinates?.y === indexY + 1 ? "selected-letter" : "")}
                 >
-                  {cell.correct !== "-" && cell.value}
+                  {indexY + 1}
                 </td>
-              })}</tr>
+                <td className="blank"></td>
+                {row.map((cell, indexX) => {
+                  return <td
+                  ref={selectedCoordinates?.x === indexX + 1 && selectedCoordinates?.y === indexY + 1 ? cellRef : null}
+                    key={indexX}
+                    className={(cell.correct === "-" ? "blank " : "") + getSelectedLetterClass(indexX + 1, indexY + 1)}
+                    onClick={() => selectWord(indexX + 1, indexY + 1)}
+                  >
+                    {cell.correct !== "-" && cell.value}
+                  </td>
+                })}
+                <td className="blank"></td>
+                </tr>
             })}
+            <tr>
+            {colNumbers.map((col) => {
+                return <td
+                  className="blank"
+                  key={col}>
+                  &nbsp;
+                </td>
+              })}
+              </tr>
           </tbody>
         </table>
       </div>
@@ -316,9 +337,8 @@ function App() {
 
       {selectWord && <div className="selected-word-section">
         {selectedWord?.definitions.map((definition, index) => {
-          if (index !== 0) {
+          
             return <p key={index}>{definition}</p>
-          }
 
         })}
         {selectedWord?.synonyms.length > 0 && <p>Palabras relacionadas: <b>{selectedWord?.synonyms.join(", ")}</b></p>}
