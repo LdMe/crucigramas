@@ -4,21 +4,32 @@ services:
     image: mongo
     container_name: ${DB_HOST}
     restart: always
-    ports:
-      - ${DB_PORT}:27017
     volumes:
       - ./server/data:/data/db
-    
+    networks:
+      - crucigramas-network
+
   node:
     build: ./server
     container_name: crucigrama
     restart: always
-    ports:
-      - ${APP_PORT}:3000
+
     depends_on:
       - mongo
-    env_file:
-      - .env
+    environment:
+      - VIRTUAL_HOST=api.crucigramas.lafuentedanel.com
+      - LETSENCRYPT_HOST=api.crucigramas.lafuentedanel.com
+      - LETSENCRYPT_EMAIL=admin@lafuentedanel.com
     volumes:
       - ./server:/app
       - /app/node_modules
+    networks:
+      - crucigramas-network
+      - nginx-proxy
+
+networks:
+  crucigramas-network:
+    driver: internal
+  nginx-proxy:
+    external:
+      name: nginx-proxy
