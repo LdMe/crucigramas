@@ -3,7 +3,7 @@ body {
   width: 100%;
   overflow-x: hidden;
 }
-#root {
+.App {
   max-width: 100%;
   margin: 0 auto;
   padding: auto;
@@ -23,20 +23,7 @@ body {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
 
 .card {
   padding: 2em;
@@ -81,6 +68,9 @@ td.correct-letter {
   background-color: rgb(95, 235, 95);
 
 }
+td.correct-letter.selected-letter {
+  background-color: rgb(47, 153, 47);
+}
 td.blank.selected-letter {
   background-color: rgb(85, 85, 85);
   color:rgb(218, 184, 60);
@@ -88,18 +78,32 @@ td.blank.selected-letter {
 
 .board{
   max-width: 100vw;
-  height: 50dvh;
+  max-height: 50dvh;
   overflow:scroll;
+  margin: 0 auto;
 }
 
 .selected-word-section {
   height: 20dvh;
   width:90vw;
   overflow: scroll;
+  margin: 0 auto;
+  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+}
+.selected-word-section p {
+  text-align: start;
 }
 
 .keyboard-section {
-  height: 30dvh;
+  max-height: 20dvh;
+  margin: 0 auto;
+  padding-bottom: 10px;
+  width: 90vw;
+}
+.board button {
+  width: 100%;
 }
 .hg-button:hover {
   /*
@@ -121,5 +125,43 @@ td.blank.selected-letter {
     transform: scale(1);
     background-color: #888 !important;
 
+  }
+}
+/*
+mobile first
+*/
+
+@media (min-width: 768px) {
+  
+  .board {
+    max-width: 50vw;
+    max-height: 90vh;
+  }
+  .selected-word-section {
+    height: 90vh;
+    width:50vw;
+  }
+  .keyboard-section {
+    height: 10vh;
+  }
+}
+@media (min-width: 1024px) {
+  .board {
+    width: 50vw;
+    max-height: 100vh;
+  }
+  .selected-word-section {
+    height: 100vh;
+    width:50vw;
+  }
+  .keyboard-section {
+    display: none;
+  }
+}
+
+/* if client uses dark mode */
+@media (prefers-color-scheme: dark) {
+  td, .hg-button{
+    color: black;
   }
 }
