@@ -119,8 +119,8 @@ const addWord = async (wordInfo) => {
 }
 
 const getRandomWordFromWords = async() => {
-    console.log("words",words.length)
-    if(words.length===0){
+    console.log("words",words?.length)
+    if( !words || words.length===0){
         return await getRandomWord();
     }
     const randomIndex = Math.floor(Math.random() * words.length);
