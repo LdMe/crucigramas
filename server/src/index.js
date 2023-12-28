@@ -46,7 +46,7 @@ app.get('/api/words/:word', async (req, res) => {
 });
 
 app.get('/api/crossword', async (req, res) => {
-    //getRandomWordFromWords();
+    getRandomWordFromWords();
     const count = req.query.count || 20;
     const words = await getRandomWords(parseInt(count));
     const normalizedWords = words.map((word)=>{
