@@ -7,7 +7,9 @@ const WordInfo = ({ selectedWord, onClick, onLeft, onRight }) => {
 
     useEffect(() => {
         if (startRef.current) {
-            startRef.current.scrollTop = 0;
+            startRef.current.scroll({
+                top: 0,
+            })
         }
 
     }, [selectedWord])

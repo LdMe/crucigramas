@@ -6,7 +6,7 @@ const Board = ({ layout, selectedCoordinates, onClick, getClass }) => {
     const cellRef = useRef(null);
     useEffect(() => {
         centerBoard();
-    }, [layout]);
+    }, []);
     useEffect(() => {
         if (selectedCoordinates) {
             centerSelectedLetter();
@@ -16,8 +16,13 @@ const Board = ({ layout, selectedCoordinates, onClick, getClass }) => {
         if (!cellRef.current) return;
         const offsetX = cellRef.current.offsetLeft - tableRef.current.parentElement.clientWidth / 2 + cellRef.current.clientWidth / 2;
         const offsetY = cellRef.current.offsetTop - tableRef.current.parentElement.clientHeight / 2 + cellRef.current.clientHeight / 2;
-        tableRef.current.parentElement.scrollLeft = offsetX;
-        tableRef.current.parentElement.scrollTop = offsetY
+        /* tableRef.current.parentElement.scrollLeft = offsetX;
+        tableRef.current.parentElement.scrollTop = offsetY */
+        tableRef.current.parentElement.scrollTo({
+            left: offsetX,
+            top: offsetY,
+            behavior: "smooth"
+        });
     }
     const centerBoard = () => {
         if (!tableRef.current) return;
@@ -25,7 +30,7 @@ const Board = ({ layout, selectedCoordinates, onClick, getClass }) => {
         const offsetY = tableRef.current.clientHeight / 2 - tableRef.current.parentElement.clientHeight / 2;
         tableRef.current.parentElement.scrollLeft = offsetX;
         tableRef.current.parentElement.scrollTop = offsetY
-        
+
     }
     const colNumbers = [];
     for (let i = 0; i < layout?.cols; i++) {
