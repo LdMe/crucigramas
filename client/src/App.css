@@ -62,14 +62,17 @@ td.selected-word {
   background-color: rgb(242, 245, 100);
 }
 td.selected-letter {
-  background-color: rgb(218, 184, 60);
+  background-color: rgb(243, 193, 16);
 }
 td.correct-letter {
-  background-color: rgb(95, 235, 95);
+  background-color: rgb(124, 245, 124);
 
 }
 td.correct-letter.selected-letter {
   background-color: rgb(47, 153, 47);
+}
+td.correct-letter.selected-word {
+  background-color: rgb(27, 241, 27);
 }
 td.blank.selected-letter {
   background-color: rgb(85, 85, 85);
@@ -81,6 +84,9 @@ td.blank.selected-letter {
   max-height: 50dvh;
   overflow:scroll;
   margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  background-color: rgb(85, 85, 85);
 }
 
 .selected-word-section {
@@ -112,6 +118,85 @@ td.blank.selected-letter {
   animation: keyAnimation 0.5s 1;
 }
 
+.action-buttons{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  padding: 10px 0;
+  width: 80%;
+
+}
+.icon-button {
+  padding: 10px;
+}
+.icon-button.disabled {
+  color: #888;
+}
+
+.options-menu {
+  /*
+  menu situado en la esquina superior derecha
+  */
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 10px;
+  opacity: 70%;
+  font-size: 2rem;
+
+}
+.options-menu:hover {
+  opacity: 100%;
+}
+.options-menu.selected{
+  opacity: 100%;
+}
+.options-menu-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000aa;
+  z-index: 1;
+}
+.options-menu-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+
+}
+
+.options-menu-content{
+  /*
+  menú que se encuentra en el centro de  la pantalla, los contenidos se muestran en vertical
+  */
+  position: fixed;
+  top: 25%;
+  left: 40%;
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.options-menu-content .options-menu-item{
+  padding: 10px;
+  margin: 10px;
+  font-size: 4rem;
+}
+.options-menu-content .options-menu-item:hover {
+  animation: keyAnimation 0.5s 1;
+}
+.p0 {
+  padding: 0;
+}
+
 @keyframes keyAnimation {
   0% {
     transform: scale(1);
@@ -130,7 +215,12 @@ td.blank.selected-letter {
 /*
 mobile first
 */
-
+@media screen and (max-width: 767px)
+ {
+  .options-menu .icon-button{
+    color: white;
+  }  
+}
 @media (min-width: 768px) {
   
   .board {
@@ -144,6 +234,8 @@ mobile first
   .keyboard-section {
     height: 10vh;
   }
+  
+    
 }
 @media (min-width: 1024px) {
   .board {
@@ -161,7 +253,13 @@ mobile first
 
 /* if client uses dark mode */
 @media (prefers-color-scheme: dark) {
-  td, .hg-button{
+  td, .hg-button {
     color: black;
+
+  }
+}
+@media (prefers-color-scheme: light) {
+  .options-menu > svg {
+    color: inherit;
   }
 }

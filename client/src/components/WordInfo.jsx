@@ -1,6 +1,6 @@
-import { useEffect, useRef,useState } from "react";
-
-const WordInfo = ({ selectedWord, onClick }) => {
+import { useEffect, useRef, useState } from "react";
+import { FaArrowLeft, FaArrowRight, FaMagnifyingGlass } from "react-icons/fa6";
+const WordInfo = ({ selectedWord, onClick, onLeft, onRight }) => {
     const startRef = useRef(null);
     const clickedRef = useRef(false);
     const [isClicked, setIsClicked] = useState(false);
@@ -9,7 +9,7 @@ const WordInfo = ({ selectedWord, onClick }) => {
         if (startRef.current) {
             startRef.current.scrollTop = 0;
         }
-        
+
     }, [selectedWord])
     useEffect(() => {
         clickedRef.current = false;
@@ -19,24 +19,34 @@ const WordInfo = ({ selectedWord, onClick }) => {
         if (clickedRef.current) {
             return;
         }
-        console.log("clicked", clickedRef.current);
         clickedRef.current = true;
         setIsClicked(true);
         onClick(e);
     }
     if (!selectedWord) {
-        return <div className="selected-word-section" ref={startRef}/>
+        return <div className="selected-word-section" ref={startRef} />
 
     }
     const disabledWhenOnlyOneIncorrect = selectedWord.incorrectNum && selectedWord.incorrectNum === 1;
     return (
         <div className="selected-word-section" ref={startRef}>
-            <button
-                onClick={handleClick}
-                disabled={ selectedWord.correct || selectedWord.clues?.length >= selectedWord.maxClues  || disabledWhenOnlyOneIncorrect || isClicked }
-            >
-                Pista
-            </button>
+            <div className="action-buttons">
+                <div className="icon-button" onClick={onLeft}>
+                    <FaArrowLeft  />
+                </div>
+                {selectedWord.correct || selectedWord.clues?.length >= selectedWord.maxClues || disabledWhenOnlyOneIncorrect || isClicked ?
+                    <div className="icon-button disabled" >
+                        <FaMagnifyingGlass  />
+                    </div>
+                    :
+                    <div className="icon-button" onClick={handleClick}>
+                        <FaMagnifyingGlass />
+                    </div>
+                }
+                <div className="icon-button" onClick={onRight}>
+                    <FaArrowRight  />
+                </div>
+            </div>
             {selectedWord?.definitions.map((definition, index) => {
 
                 return <p key={index}>{definition}</p>

@@ -5,7 +5,6 @@ const KeyboardHandler = ({ children, onKeyDown }) => {
     
 
     const handleKeyboard = (e) => {
-        console.log("event!!",e)
         if (!e.key) {
             if (e === "{bksp}") {
                 e = "Backspace"
