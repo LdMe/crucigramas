@@ -180,13 +180,26 @@ function App() {
     setSelectedCoordinates(newCoords);
     return newCoords;
   }
+  const handleCorrectWord = (word,layout) => {
+    if(!checkWordIsCorrect(word)) return;
+    const newLayout = {...layout};
+    newLayout.result = newLayout.result.map((word) => {
+      if (word.word === selectedWord.word) {
+        word.correct = true;
+      }
+      return word;
+    }
+    );
+    return newLayout;
+  }
+
   const handleKeyboard = (event) => {
     if (!selectedCoordinates) return;
 
     if (!layout || selectedWordIndex === null) return;
     const selectedWord = layout.result[selectedWordIndex];
     let direction = event;
-    const newLayout = { ...layout };
+    let newLayout = { ...layout };
     if (event === "Backspace") {
       // si la letra forma parte de una palabra correcta, no borrarla, saltar a la anterior letra
       const words = getWordsFromCoords(selectedCoordinates.x, selectedCoordinates.y);
@@ -204,6 +217,7 @@ function App() {
       direction = "reverse-" + selectedWord.orientation;
     }
     else if (event.length === 1) {
+      //si es una letra, añadirla
       const words = getWordsFromCoords(selectedCoordinates.x, selectedCoordinates.y);
       const anyWordIsCorrect = words.some((word) => {
         if (word.correct) return true;
@@ -212,17 +226,10 @@ function App() {
       });
 
       if (!anyWordIsCorrect) {
-
         newLayout.table[selectedCoordinates.y - 1][selectedCoordinates.x - 1].value = event;
-        const isWordCorrect = checkWordIsCorrect(selectedWord);
-        if (isWordCorrect) {
-          // add "correct:true" to the word in the layout
-          newLayout.result = newLayout.result.map((word) => {
-            if (word.word === selectedWord.word) {
-              word.correct = true;
-            }
-            return word;
-          });
+        const newLayoutWithCorrect = handleCorrectWord(selectedWord,newLayout);
+        if(newLayoutWithCorrect) {
+          newLayout = newLayoutWithCorrect;
         }
         setLayout(newLayout);
       }
@@ -265,37 +272,34 @@ function App() {
   }
 
   const handleAddClue = () => {
-    if (!layout) return;
-    const selectedWord = selectedWordIndex !== null ? layout.result[selectedWordIndex] : null;
+    if (!layout || !selectedWordIndex) return;
+    const selectedWord =layout.result[selectedWordIndex];
     if (!selectedWord) return;
     if (selectedWord.clues?.length >= selectedWord.maxClues) {
       alert("No puedes añadir más pistas a esta palabra");
       return;
     }
     const newLayout = { ...layout };
-    const word = selectedWord;
-    const { startx, starty, orientation } = word;
+    const { startx, starty, orientation } = selectedWord;
     let incorrectLetters = getIncorrectLetters(selectedWord, layout);
     if (incorrectLetters.length < 2) return;
     const randomIndex = Math.floor(Math.random() * incorrectLetters.length);
     const index = incorrectLetters[randomIndex];
-    if (orientation === "across") {
-      newLayout.table[starty - 1][startx + index - 1].value = word.word[index];
+    const directions = {
+      across: { x: 1, y: 0 },
+      down: { x: 0, y: 1 },
     }
-    else {
-      newLayout.table[starty + index - 1][startx - 1].value = word.word[index];
-    }
-
+    newLayout.table[starty - 1 + index * directions[orientation].y][startx - 1 + index * directions[orientation].x].value = selectedWord.word[index];
     newLayout.result = newLayout.result.map((word) => {
       if (word.word === selectedWord.word) {
-        word.clues.push(index);
+        if (!word.clues) word.clues = [];
+        if (!word.clues.includes(index)){
+          word.clues.push(index);
+        }
       }
       return word;
     });
-    incorrectLetters = getIncorrectLetters(selectedWord, newLayout);
-    word.incorrectNum = incorrectLetters.length;
     setLayout(newLayout);
-    setSelectedWordIndex(layout.result.indexOf(word));
 
   }
   const handLeChangeSelectedWord = (direction) => {
