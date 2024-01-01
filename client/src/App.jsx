@@ -13,6 +13,8 @@ function App() {
   const [layout, setLayout] = useState(null);
   const [selectedWordIndex, setSelectedWordIndex] = useState(null);
   const [selectedCoordinates, setSelectedCoordinates] = useState(null);
+  const [isEnded,setIsEnded] = useState(false);
+
   useEffect(() => {
     const newLayout = getLayoutFromLocalStorage();
     if (newLayout) {
@@ -23,12 +25,38 @@ function App() {
   }
     , []);
   useEffect(() => {
+    if(!layout){
+      return;
+    }
     saveLayoutToLocalStorage();
+    let ended = true;
+    for(const word of layout.result){
+      if(!word.correct){
+        ended = false;
+        break;
+      }
+    }
+    if(ended && !isEnded) {
+      setIsEnded(true);
+      return;
+    }
+    if(!selectedCoordinates){
+      handLeChangeSelectedWord(0);
+    }
   }, [layout])
   useEffect(() => {
     //centerSelectedLetter();
   }, [selectedCoordinates])
-
+  useEffect(()=>{
+    if(isEnded){
+      alert("este juego ha terminado")
+      alert("mucho antes de empezar")
+      setTimeout(()=>{
+        getCrossword();
+      },1000)
+      return;
+    }
+  },[isEnded])
   const saveLayoutToLocalStorage = () => {
     localStorage.setItem("layout", JSON.stringify(layout));
   }
@@ -39,7 +67,7 @@ function App() {
   }
   const getCrossword = async () => {
     try {
-      const count = 20;
+      const count = 3;
       const res = await fetch(`https://api.crucigramas.lafuentedanel.com/api/crossword?count=${count}`)
       const data = await res.json()
       data.table = data.table.map((row) => {
@@ -53,7 +81,7 @@ function App() {
         word.maxClues = word.word.length / 2;
         word.maxPoints = word.maxClues * 2;
         return word;
-      });
+      }).filter(word => word.orientation !== "none")
       setLayout(data);
 
     }
@@ -181,7 +209,12 @@ function App() {
     return newCoords;
   }
   const handleCorrectWord = (word,layout) => {
+
     if(!checkWordIsCorrect(word)) return;
+    const selectedWord = selectedWordIndex !== null ? layout.result[selectedWordIndex] : null;
+    if(!selectedWord){
+      return null;
+    }
     const newLayout = {...layout};
     newLayout.result = newLayout.result.map((word) => {
       if (word.word === selectedWord.word) {
@@ -216,6 +249,10 @@ function App() {
       }
       direction = "reverse-" + selectedWord.orientation;
     }
+    else if(event === "Tab"){
+      handLeChangeSelectedWord(1)
+      return;
+    }
     else if (event.length === 1) {
       //si es una letra, añadirla
       const words = getWordsFromCoords(selectedCoordinates.x, selectedCoordinates.y);
@@ -236,6 +273,9 @@ function App() {
       direction = selectedWord.orientation;
 
     }
+    else{
+      console.log("pressed key: ",event)
+    }
     handleMoveCoordinates(direction, newLayout);
 
   }
@@ -251,6 +291,9 @@ function App() {
     try {
       if (!layout || !word) return [];
       const { startx, starty, orientation, word: answer } = word;
+      if(!orientation || orientation === "none"){
+        return 0;
+      }
       const table = layout.table;
       const incorrectLetters = [];
       const directions = {
@@ -303,7 +346,7 @@ function App() {
 
   }
   const handLeChangeSelectedWord = (direction) => {
-    let newIndex = selectedWordIndex + direction;
+    let newIndex = selectedWordIndex ? selectedWordIndex + direction : direction;
     newIndex = newIndex < 0 ? layout.result.length - 1 : newIndex;
     newIndex = newIndex >= layout.result.length ? 0 : newIndex;
     const newCoords = { x: layout.result[newIndex].startx, y: layout.result[newIndex].starty };
